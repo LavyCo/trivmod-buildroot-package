@@ -1,5 +1,7 @@
 config BR2_PACKAGE_MYMODULE
-    bool "mymodule"
+    bool "mymodule - Character Device with Circular Buffer"
     depends on BR2_LINUX_KERNEL
     help
-      Simple Hello World Linux kernel module.
+      Linux kernel module for Raspberry Pi 5.
+      Creates a character device and supports
+      read/write operations using a circular buffer.
