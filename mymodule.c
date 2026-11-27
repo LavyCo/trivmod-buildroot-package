@@ -7,6 +7,7 @@
 #include <linux/device.h>
 #include <linux/err.h>
 #include <linux/uaccess.h>
+#include "mymodule.h"
 
 
 #define BUFFER_SIZE 128
@@ -124,7 +125,36 @@ static ssize_t mymod_read(struct file *file,
     return bytes_read;
 }
 
+static long mymod_ioctl(struct file *file,
+                       unsigned int cmd,
+                       unsigned long arg)
+{
+    struct mod_priv *priv = file->private_data;
+    struct mystats stats;
 
+    switch (cmd)
+    {
+        case MY_STATSGET:
+             stats.open_count = priv->open_count;
+             stats.release_count = priv->release_count;
+             stats.active_count = priv->active_count;
+
+             if (copy_to_user((void __user *)arg,
+                            &stats, sizeof(stats)))
+                return -EFAULT;
+            break;
+
+        case MY_STATSCLR:
+            priv->open_count = 0;
+            priv->release_count = 0;
+            break;
+
+        default:
+            return -EINVAL;
+    }
+
+    return 0;
+}
 
 static const struct file_operations my_fops = {
     .owner = THIS_MODULE,
@@ -132,6 +162,7 @@ static const struct file_operations my_fops = {
     .release = mymod_release,
     .read = mymod_read,
     .write = mymod_write,
+    .unlocked_ioctl = mymod_ioctl,
 };
 
 
